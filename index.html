@@ -390,11 +390,11 @@
                         </div>
                     </div>
                     <div class="flex items-baseline gap-2">
-                        <span id="stat-positive-rate" class="text-3xl font-bold text-emerald-400">78%</span>
-                        <span class="text-xs text-emerald-500 flex items-center gap-0.5"><i class="fa-solid fa-arrow-up"></i> 4%</span>
+                        <span id="stat-positive-rate" class="text-3xl font-bold text-emerald-400">0%</span>
+                        <span class="text-xs text-emerald-500 flex items-center gap-0.5"><i class="fa-solid fa-arrow-up"></i> 0%</span>
                     </div>
                     <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div id="stat-positive-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style="width: 78%"></div>
+                        <div id="stat-positive-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style="width: 0%"></div>
                     </div>
                     <span class="text-[10px] text-slate-400 block">حالة إيجابية ومستقرة بوجه عام</span>
                 </div>
@@ -408,10 +408,10 @@
                         </div>
                     </div>
                     <div class="flex items-baseline gap-2">
-                        <span id="stat-total-count" class="text-3xl font-bold text-white">142</span>
+                        <span id="stat-total-count" class="text-3xl font-bold text-white">0</span>
                         <span class="text-xs text-slate-400">طالب</span>
                     </div>
-                    <p class="text-[10px] text-slate-400">تغطية تبلغ 84% من إجمالي الطلاب</p>
+                    <p class="text-[10px] text-slate-400">متابعة المشاركة المباشرة للطلاب</p>
                 </div>
 
                 <!-- Open Support Tickets -->
@@ -423,7 +423,7 @@
                         </div>
                     </div>
                     <div class="flex items-baseline gap-2">
-                        <span id="stat-tickets-count" class="text-3xl font-bold text-rose-400">3</span>
+                        <span id="stat-tickets-count" class="text-3xl font-bold text-rose-400">0</span>
                         <span class="text-xs text-rose-400 font-medium">حالات تحتاج تواصل</span>
                     </div>
                     <p class="text-[10px] text-slate-400">تتطلب استجابة خلال 24 ساعة</p>
@@ -438,9 +438,9 @@
                         </div>
                     </div>
                     <div class="flex items-baseline gap-2">
-                        <span id="stat-top-reason" class="text-xl font-bold text-amber-300">الاختبارات والواجبات</span>
+                        <span id="stat-top-reason" class="text-xl font-bold text-amber-300">لا يوجد بيانات</span>
                     </div>
-                    <p class="text-[10px] text-slate-400">يمثل 62% من الحالات ذات الشعور السلبي</p>
+                    <p class="text-[10px] text-slate-400" id="stat-top-reason-sub">تحليل العوامل الأكثر تأثيراً</p>
                 </div>
 
             </div>
@@ -485,7 +485,7 @@
                             <h3 class="font-bold text-base text-white">إدارة طلبات الدعم السري</h3>
                             <p class="text-xs text-slate-400">استغاثات الطلاب السرية التي تتطلب تدخلاً إرشادياً</p>
                         </div>
-                        <span class="px-2.5 py-1 bg-slate-800 text-slate-300 text-xs rounded-lg border border-slate-700" id="tickets-badge-count">3 طلبات</span>
+                        <span class="px-2.5 py-1 bg-slate-800 text-slate-300 text-xs rounded-lg border border-slate-700" id="tickets-badge-count">0 طلبات</span>
                     </div>
 
                     <!-- Tickets Table -->
@@ -651,27 +651,56 @@
         <p>منصة «طمأنينة» لتعزيز الصحة النفسية والبيئة المدرسية الإيجابية © 2026</p>
     </footer>
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // Password configuration for Dashboard Access
-        const ADMIN_PASSWORD = "mazens@1234567800"; // كلمة السر الجديدة المحدثة
+    <!-- FIREBASE & JAVASCRIPT LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            updateDoc, 
+            doc, 
+            onSnapshot, 
+            query, 
+            orderBy, 
+            serverTimestamp,
+            getDocs,
+            deleteDoc
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // State Management
-        let currentState = {
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKey_ReplaceWithYourKeyHere",
+            authDomain: "tamaneena-app.firebaseapp.com",
+            projectId: "tamaneena-app",
+            storageBucket: "tamaneena-app.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Global Firebase References
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.updateDoc = updateDoc;
+        window.doc = doc;
+        window.serverTimestamp = serverTimestamp;
+        window.getDocs = getDocs;
+        window.deleteDoc = deleteDoc;
+
+        // Password configuration for Dashboard Access
+        const ADMIN_PASSWORD = "mazens@1234567800";
+
+        // Global State
+        window.currentState = {
             selectedMood: null,
             selectedReason: null,
-            submissions: [
-                { mood: 'joy', reason: 'studies', timestamp: '10:15 AM' },
-                { mood: 'calm', reason: 'friends', timestamp: '10:20 AM' },
-                { mood: 'anxious', reason: 'studies', timestamp: '10:22 AM' },
-                { mood: 'sad', reason: 'home', timestamp: '10:30 AM' },
-                { mood: 'joy', reason: 'friends', timestamp: '10:45 AM' }
-            ],
-            tickets: [
-                { id: '#TK-1092', time: 'اليوم 09:15 ص', msg: 'أواجه صعوبة كبيرة في التركيز بسبب الخوف من امتحان الفيزياء.', contact: 'الصف الثامن', status: 'جديدة' },
-                { id: '#TK-1088', time: 'أمس 01:40 م', msg: 'أحتاج للتحدث مع المرشد حول مشكلة تنمر من أحد الطلاب.', contact: '0501234567', status: 'قيد المعالجة' },
-                { id: '#TK-1051', time: '22 سبتمبر', msg: 'أشعر بضغط شديد ورغبة في عدم الحضور للمدرسة.', contact: 'مجهول', status: 'مكتملة' }
-            ]
+            submissions: [],
+            tickets: []
         };
 
         const moodQuotes = {
@@ -685,13 +714,22 @@
             fear: "أنت في بيئة آمنة، ولا تجعل الخوف يمنعك من طلب الدعم والتحدث معنا."
         };
 
-        // DOM Loaded Init
+        const reasonMap = {
+            studies: "الدراسة والاختبارات",
+            friends: "الأصدقاء والعلاقات",
+            home: "المنزل والأسرة",
+            pressure: "الضغوط والمسؤوليات",
+            bullying: "مضايقات أو تنمر",
+            other: "أسباب أخرى"
+        };
+
+        // Initialize Charts & Firebase Listeners on Load
         document.addEventListener('DOMContentLoaded', () => {
             initCharts();
-            renderTickets();
             generateQRCodes();
+            listenToSubmissions();
+            listenToTickets();
             
-            // Check Hash route
             if(window.location.hash === '#/dashboard') {
                 checkAdminAccess();
             } else {
@@ -699,17 +737,49 @@
             }
         });
 
-        // Authentication & Role Check
-        function checkAdminAccess() {
+        // -------------------------------------------------------------
+        // FIREBASE REALTIME LISTENERS
+        // -------------------------------------------------------------
+        function listenToSubmissions() {
+            const q = query(collection(db, "submissions"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                window.currentState.submissions = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                updateDashboardAnalytics();
+            }, (error) => {
+                console.error("Error listening to submissions:", error);
+            });
+        }
+
+        function listenToTickets() {
+            const q = query(collection(db, "tickets"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                window.currentState.tickets = snapshot.docs.map(doc => ({
+                    docId: doc.id,
+                    ...doc.data()
+                }));
+                renderTickets();
+                updateDashboardAnalytics();
+            }, (error) => {
+                console.error("Error listening to tickets:", error);
+            });
+        }
+
+        // -------------------------------------------------------------
+        // AUTH & ROUTING
+        // -------------------------------------------------------------
+        window.checkAdminAccess = function() {
             const isAuthenticated = sessionStorage.getItem('isAdminLoggedIn');
             if (isAuthenticated === 'true') {
                 navigate('dashboard');
             } else {
                 document.getElementById('admin-login-modal').classList.remove('hidden');
             }
-        }
+        };
 
-        function authenticateAdmin() {
+        window.authenticateAdmin = function() {
             const passInput = document.getElementById('admin-pass').value;
             const role = document.getElementById('role-select').value;
 
@@ -721,7 +791,6 @@
                 document.getElementById('login-error').classList.add('hidden');
                 document.getElementById('admin-pass').value = '';
                 
-                // Update badge text based on role
                 const roleBadge = document.getElementById('active-role-badge');
                 if(role === 'principal') roleBadge.innerText = 'مدير المدرسة';
                 else if(role === 'analyst') roleBadge.innerText = 'محلل البيانات';
@@ -731,20 +800,19 @@
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
             }
-        }
+        };
 
-        function closeLoginModal() {
+        window.closeLoginModal = function() {
             document.getElementById('admin-login-modal').classList.add('hidden');
-        }
+        };
 
-        function logoutAdmin() {
+        window.logoutAdmin = function() {
             sessionStorage.removeItem('isAdminLoggedIn');
             sessionStorage.removeItem('adminRole');
             navigate('join');
-        }
+        };
 
-        // Router
-        function navigate(view) {
+        window.navigate = function(view) {
             const joinView = document.getElementById('view-join');
             const dashView = document.getElementById('view-dashboard');
             const btnJoin = document.getElementById('nav-join');
@@ -763,13 +831,14 @@
                 btnDash.className = "px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/50";
                 window.location.hash = '/join';
             }
-        }
+        };
 
-        // Student Selection Logic
-        function selectMood(moodKey) {
-            currentState.selectedMood = moodKey;
+        // -------------------------------------------------------------
+        // STUDENT EXPRESSION LOGIC
+        // -------------------------------------------------------------
+        window.selectMood = function(moodKey) {
+            window.currentState.selectedMood = moodKey;
             
-            // Highlight Selected Card
             document.querySelectorAll('.mood-card').forEach(card => {
                 if(card.dataset.mood === moodKey) {
                     card.classList.add('selected');
@@ -778,53 +847,48 @@
                 }
             });
 
-            // Reveal Reasons & Enable Submit Button
             document.getElementById('reason-section').classList.remove('hidden');
             const submitBtn = document.getElementById('submit-mood-btn');
             submitBtn.disabled = false;
             submitBtn.className = "w-full py-3.5 bg-gradient-to-r from-brand-600 to-brand-teal hover:from-brand-500 hover:to-brand-teal text-white rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-900/40 cursor-pointer";
-        }
+        };
 
-        function toggleReason(btn, reasonKey) {
+        window.toggleReason = function(btn, reasonKey) {
             document.querySelectorAll('.reason-btn').forEach(b => {
                 b.classList.remove('border-brand-500', 'bg-brand-500/20', 'text-brand-300');
             });
             btn.classList.add('border-brand-500', 'bg-brand-500/20', 'text-brand-300');
-            currentState.selectedReason = reasonKey;
-        }
+            window.currentState.selectedReason = reasonKey;
+        };
 
-        function submitMood() {
-            if(!currentState.selectedMood) return;
+        window.submitMood = async function() {
+            if(!window.currentState.selectedMood) return;
 
-            // Trigger Confetti for positive moods
-            if(currentState.selectedMood === 'joy' || currentState.selectedMood === 'calm') {
+            if(window.currentState.selectedMood === 'joy' || window.currentState.selectedMood === 'calm') {
                 confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
             }
 
-            // Update UI to Step 3
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('step-3').classList.remove('hidden');
+            document.getElementById('feedback-quote').innerText = `"${moodQuotes[window.currentState.selectedMood]}"`;
 
-            // Set Quote
-            document.getElementById('feedback-quote').innerText = `"${moodQuotes[currentState.selectedMood]}"`;
+            try {
+                await addDoc(collection(db, "submissions"), {
+                    mood: window.currentState.selectedMood,
+                    reason: window.currentState.selectedReason || 'other',
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Error writing submission to Firestore: ", e);
+            }
+        };
 
-            // Push to state
-            currentState.submissions.push({
-                mood: currentState.selectedMood,
-                reason: currentState.selectedReason || 'other',
-                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-            });
-
-            // Update Dashboard Analytics live
-            updateDashboardData();
-        }
-
-        function toggleTicketForm() {
+        window.toggleTicketForm = function() {
             const form = document.getElementById('ticket-form-container');
             form.classList.toggle('hidden');
-        }
+        };
 
-        function submitSupportTicket() {
+        window.submitSupportTicket = async function() {
             const msg = document.getElementById('ticket-msg').value;
             const contact = document.getElementById('ticket-contact').value;
 
@@ -834,25 +898,28 @@
             }
 
             const code = '#TK-' + Math.floor(1000 + Math.random() * 9000);
-            currentState.tickets.unshift({
-                id: code,
-                time: 'الآن',
-                msg: msg,
-                contact: contact || 'مجهول',
-                status: 'جديدة'
-            });
+            
+            try {
+                await addDoc(collection(db, "tickets"), {
+                    id: code,
+                    time: "الآن",
+                    msg: msg,
+                    contact: contact || "مجهول",
+                    status: "جديدة",
+                    timestamp: serverTimestamp()
+                });
 
-            document.getElementById('ticket-form-container').classList.add('hidden');
-            document.getElementById('ticket-success').classList.remove('hidden');
-            document.getElementById('ticket-code-display').innerText = code;
+                document.getElementById('ticket-form-container').classList.add('hidden');
+                document.getElementById('ticket-success').classList.remove('hidden');
+                document.getElementById('ticket-code-display').innerText = code;
+            } catch (e) {
+                console.error("Error sending ticket to Firestore: ", e);
+            }
+        };
 
-            renderTickets();
-            updateDashboardData();
-        }
-
-        function resetStudentForm() {
-            currentState.selectedMood = null;
-            currentState.selectedReason = null;
+        window.resetStudentForm = function() {
+            window.currentState.selectedMood = null;
+            window.currentState.selectedReason = null;
             document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
             document.getElementById('step-1').classList.remove('hidden');
             document.getElementById('step-3').classList.add('hidden');
@@ -864,11 +931,13 @@
             const submitBtn = document.getElementById('submit-mood-btn');
             submitBtn.disabled = true;
             submitBtn.className = "w-full py-3.5 bg-slate-700 text-slate-400 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 cursor-not-allowed";
-        }
+        };
 
-        // Breathing Exercise Controls
+        // -------------------------------------------------------------
+        // BREATHING MODAL LOGIC
+        // -------------------------------------------------------------
         let breathInterval;
-        function openBreathingModal() {
+        window.openBreathingModal = function() {
             document.getElementById('breathing-modal').classList.remove('hidden');
             const textElem = document.getElementById('breath-instruction');
             let state = 0;
@@ -882,26 +951,27 @@
                     state = 0;
                 }
             }, 4000);
-        }
+        };
 
-        function closeBreathingModal() {
+        window.closeBreathingModal = function() {
             document.getElementById('breathing-modal').classList.add('hidden');
             clearInterval(breathInterval);
-        }
+        };
 
-        // Dashboard Render Functions
+        // -------------------------------------------------------------
+        // CHARTS & DASHBOARD ANALYTICS
+        // -------------------------------------------------------------
         let moodChart, trendChart;
 
         function initCharts() {
-            // Mood Distribution Chart
             const ctx1 = document.getElementById('moodChart').getContext('2d');
             moodChart = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
-                    labels: ['فرح', 'هدوء', 'حزن', 'قلق', 'إرهاق', 'غضب'],
+                    labels: ['فرح', 'هدوء', 'حزن', 'قلق', 'إرهاق', 'ملل', 'غضب', 'خوف'],
                     datasets: [{
-                        data: [45, 35, 12, 18, 10, 5],
-                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#a855f7', '#64748b', '#f43f5e'],
+                        data: [0, 0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#a855f7', '#64748b', '#6366f1', '#f43f5e', '#14b8a6'],
                         borderWidth: 0
                     }]
                 },
@@ -914,7 +984,6 @@
                 }
             });
 
-            // Trend Chart
             const ctx2 = document.getElementById('trendChart').getContext('2d');
             trendChart = new Chart(ctx2, {
                 type: 'line',
@@ -923,7 +992,7 @@
                     datasets: [
                         {
                             label: 'حالات إيجابية',
-                            data: [70, 75, 78, 82, 80],
+                            data: [0, 0, 0, 0, 0],
                             borderColor: '#10b981',
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             fill: true,
@@ -931,7 +1000,7 @@
                         },
                         {
                             label: 'تحتاج دعم',
-                            data: [30, 25, 22, 18, 20],
+                            data: [0, 0, 0, 0, 0],
                             borderColor: '#f43f5e',
                             backgroundColor: 'rgba(244, 63, 94, 0.1)',
                             fill: true,
@@ -953,26 +1022,131 @@
             });
         }
 
-        function renderTickets() {
+        function updateDashboardAnalytics() {
+            const subs = window.currentState.submissions;
+            const totalCount = subs.length;
+
+            document.getElementById('stat-total-count').innerText = totalCount;
+
+            if (totalCount === 0) {
+                document.getElementById('stat-positive-rate').innerText = '0%';
+                document.getElementById('stat-positive-bar').style.width = '0%';
+                document.getElementById('stat-top-reason').innerText = 'لا يوجد بيانات';
+                document.getElementById('stat-top-reason-sub').innerText = 'في انتظار مشاركات الطلاب';
+                return;
+            }
+
+            // Calculate Mood Counts
+            const counts = { joy: 0, calm: 0, sad: 0, anxious: 0, exhausted: 0, bored: 0, angry: 0, fear: 0 };
+            const negativeReasons = {};
+            let positiveCount = 0;
+
+            subs.forEach(s => {
+                if (counts[s.mood] !== undefined) {
+                    counts[s.mood]++;
+                }
+                if (s.mood === 'joy' || s.mood === 'calm') {
+                    positiveCount++;
+                } else {
+                    if (s.reason) {
+                        negativeReasons[s.reason] = (negativeReasons[s.reason] || 0) + 1;
+                    }
+                }
+            });
+
+            // Update Positive Rate Card
+            const posRate = Math.round((positiveCount / totalCount) * 100);
+            document.getElementById('stat-positive-rate').innerText = `${posRate}%`;
+            document.getElementById('stat-positive-bar').style.width = `${posRate}%`;
+
+            // Calculate Top Stress Reason
+            let topReasonKey = null;
+            let maxReasonCount = 0;
+            let totalNegativesWithReason = 0;
+
+            for (const [rKey, rVal] of Object.entries(negativeReasons)) {
+                totalNegativesWithReason += rVal;
+                if (rVal > maxReasonCount) {
+                    maxReasonCount = rVal;
+                    topReasonKey = rKey;
+                }
+            }
+
+            if (topReasonKey) {
+                document.getElementById('stat-top-reason').innerText = reasonMap[topReasonKey] || topReasonKey;
+                const reasonPercentage = Math.round((maxReasonCount / totalNegativesWithReason) * 100);
+                document.getElementById('stat-top-reason-sub').innerText = `يمثل ${reasonPercentage}% من الحالات ذات الشعور السلبي`;
+            } else {
+                document.getElementById('stat-top-reason').innerText = 'لا يوجد مسببات بارزة';
+                document.getElementById('stat-top-reason-sub').innerText = 'المؤشرات الحالية مستقرة تماماً';
+            }
+
+            // Update Donut Chart
+            if (moodChart) {
+                moodChart.data.datasets[0].data = [
+                    counts.joy, counts.calm, counts.sad, counts.anxious, counts.exhausted, counts.bored, counts.angry, counts.fear
+                ];
+                moodChart.update();
+            }
+
+            // Update Trend Chart Dynamically based on real data
+            if (trendChart) {
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+                const posTrend = [0, 0, 0, 0, 0];
+                const negTrend = [0, 0, 0, 0, 0];
+
+                subs.forEach(s => {
+                    let dayIdx = 2; // Default Tuesday
+                    if (s.timestamp && s.timestamp.toDate) {
+                        const date = s.timestamp.toDate();
+                        const dayNum = date.getDay(); // 0 = Sun, 1 = Mon ...
+                        if (dayNum >= 0 && dayNum <= 4) {
+                            dayIdx = dayNum;
+                        }
+                    }
+                    if (s.mood === 'joy' || s.mood === 'calm') {
+                        posTrend[dayIdx]++;
+                    } else {
+                        negTrend[dayIdx]++;
+                    }
+                });
+
+                trendChart.data.datasets[0].data = posTrend;
+                trendChart.data.datasets[1].data = negTrend;
+                trendChart.update();
+            }
+        }
+
+        // -------------------------------------------------------------
+        // TICKETS TABLE RENDER & FIRESTORE STATUS UPDATE
+        // -------------------------------------------------------------
+        window.renderTickets = function() {
             const tbody = document.getElementById('tickets-table-body');
             tbody.innerHTML = '';
 
-            currentState.tickets.forEach((t, index) => {
+            const tickets = window.currentState.tickets;
+
+            tickets.forEach((t) => {
                 let statusBadge = '';
                 if(t.status === 'جديدة') statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30">جديدة</span>';
                 else if(t.status === 'قيد المعالجة') statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">قيد المعالجة</span>';
                 else statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">مكتملة</span>';
 
+                let displayTime = t.time || 'الآن';
+                if (t.timestamp && t.timestamp.toDate) {
+                    displayTime = t.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/40 transition";
                 tr.innerHTML = `
-                    <td class="p-3 font-mono font-bold text-amber-400">${t.id}</td>
-                    <td class="p-3 text-slate-400">${t.time}</td>
+                    <td class="p-3 font-mono font-bold text-amber-400">${t.id || '#TK-0000'}</td>
+                    <td class="p-3 text-slate-400">${displayTime}</td>
                     <td class="p-3 max-w-xs truncate" title="${t.msg}">${t.msg}</td>
                     <td class="p-3 text-slate-300">${t.contact}</td>
                     <td class="p-3">${statusBadge}</td>
                     <td class="p-3">
-                        <select onchange="updateTicketStatus(${index}, this.value)" class="bg-slate-800 border border-slate-700 text-[10px] rounded p-1 text-slate-200">
+                        <select onchange="updateTicketStatus('${t.docId}', this.value)" class="bg-slate-800 border border-slate-700 text-[10px] rounded p-1 text-slate-200">
                             <option value="جديدة" ${t.status==='جديدة'?'selected':''}>جديدة</option>
                             <option value="قيد المعالجة" ${t.status==='قيد المعالجة'?'selected':''}>قيد المعالجة</option>
                             <option value="مكتملة" ${t.status==='مكتملة'?'selected':''}>مكتملة</option>
@@ -982,22 +1156,26 @@
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('tickets-badge-count').innerText = `${currentState.tickets.length} طلبات`;
-            document.getElementById('stat-tickets-count').innerText = currentState.tickets.filter(t => t.status !== 'مكتملة').length;
-        }
+            document.getElementById('tickets-badge-count').innerText = `${tickets.length} طلبات`;
+            document.getElementById('stat-tickets-count').innerText = tickets.filter(t => t.status !== 'مكتملة').length;
+        };
 
-        function updateTicketStatus(index, newStatus) {
-            currentState.tickets[index].status = newStatus;
-            renderTickets();
-        }
+        window.updateTicketStatus = async function(docId, newStatus) {
+            if (!docId) return;
+            try {
+                const ticketRef = doc(db, "tickets", docId);
+                await updateDoc(ticketRef, {
+                    status: newStatus
+                });
+            } catch (e) {
+                console.error("Error updating ticket status: ", e);
+            }
+        };
 
-        function updateDashboardData() {
-            document.getElementById('stat-total-count').innerText = 142 + currentState.submissions.length;
-            renderTickets();
-        }
-
-        function generateQRCodes() {
-            // Dashboard Preview QR
+        // -------------------------------------------------------------
+        // QR & TOOLS
+        // -------------------------------------------------------------
+        window.generateQRCodes = function() {
             document.getElementById('poster-qr-preview').innerHTML = '';
             new QRCode(document.getElementById("poster-qr-preview"), {
                 text: window.location.origin + window.location.pathname + "#/join",
@@ -1007,7 +1185,6 @@
                 colorLight : "#ffffff"
             });
 
-            // Print Poster QR
             document.getElementById('print-qr-code').innerHTML = '';
             new QRCode(document.getElementById("print-qr-code"), {
                 text: window.location.origin + window.location.pathname + "#/join",
@@ -1016,21 +1193,31 @@
                 colorDark : "#064e3b",
                 colorLight : "#ffffff"
             });
-        }
+        };
 
-        function printPoster() {
+        window.printPoster = function() {
             window.print();
-        }
+        };
 
-        function exportReport() {
+        window.exportReport = function() {
             alert('جاري إعداد تقرير PDF الإحصائي للمدرسة للتصدير...');
-        }
+        };
 
-        function triggerDataPurge() {
+        window.triggerDataPurge = async function() {
             if(confirm('هل أنت تأكد من إجراء مسح أمان البيانات القديمة وتشفير السجلات؟')) {
-                alert('تم تنظيف ومسح بيانات نصوص الاستغاثة القديمة بنجاح وفق ميثاق الخصوصية.');
+                try {
+                    const ticketsQuery = await getDocs(collection(db, "tickets"));
+                    const deletePromises = [];
+                    ticketsQuery.forEach((documentSnap) => {
+                        deletePromises.push(deleteDoc(doc(db, "tickets", documentSnap.id)));
+                    });
+                    await Promise.all(deletePromises);
+                    alert('تم تنظيف ومسح بيانات نصوص الاستغاثة القديمة بنجاح وفق ميثاق الخصوصية.');
+                } catch (e) {
+                    console.error("Error purging data: ", e);
+                }
             }
-        }
+        };
     </script>
 </body>
 </html>
