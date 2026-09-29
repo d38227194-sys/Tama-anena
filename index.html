@@ -148,7 +148,7 @@
                 <div class="flex justify-between items-center text-xs text-slate-400 px-2">
                     <span class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        مدرسة النهضة النموذجية
+                        مدرسة الملك عبدالله الثاني للتميز
                     </span>
                     <span class="bg-slate-800/80 text-emerald-400 px-2.5 py-1 rounded-full border border-slate-700 flex items-center gap-1">
                         <i class="fa-solid fa-user-shield text-[10px]"></i> مجهول الهوية 100%
@@ -318,7 +318,7 @@
 
                         <div>
                             <label class="block text-xs font-medium text-slate-300 mb-1">وسيلة للتواصل معك (اختياري - يمكنك تركها فارغة):</label>
-                            <input id="ticket-contact" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none" placeholder="رقم الهاتف أو رقم الفصل (مثال: فصل 2/3)">
+                            <input id="ticket-contact" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none" placeholder="رقم الهاتف أو رقم الفصل (مثال: الصف الثامن)">
                         </div>
 
                         <button onclick="submitSupportTicket()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs rounded-xl transition">
@@ -355,13 +355,13 @@
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">مباشر</span>
                         <span id="active-role-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">المرشد الطلابي</span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">مدرسة النهضة النموذجية • الدورة الإحصائية: <span class="text-slate-200 font-medium">الفصل الدراسي الأول 2026</span></p>
+                    <p class="text-xs text-slate-400 mt-1">مدرسة الملك عبدالله الثاني للتميز • الدورة الإحصائية: <span class="text-slate-200 font-medium">الفصل الدراسي الأول 2026</span></p>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <!-- Cycle Selector -->
                     <select class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none">
-                        <option>الأسبوع الحالي (أسبوع الاختيارات)</option>
+                        <option>الأسبوع الحالي</option>
                         <option>الشهر الماضي</option>
                         <option>الفصل الدراسي الأول</option>
                     </select>
@@ -579,7 +579,7 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">كلمة المرور / الرمز السري</label>
-                    <input id="admin-pass" type="password" placeholder="أدخل كلمة المرور (الافتراضية: 12345)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    <input id="admin-pass" type="password" placeholder="أدخل كلمة المرور الخاصة بالإدارة" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
                 </div>
 
                 <p id="login-error" class="text-xs text-rose-400 hidden"><i class="fa-solid fa-triangle-exclamation"></i> كلمة المرور غير صحيحة!</p>
@@ -628,7 +628,7 @@
         <div class="border-8 border-emerald-600 p-8 rounded-3xl space-y-8">
             <div class="space-y-2">
                 <h1 class="text-5xl font-black text-emerald-800">مساحتك الآمنة للتعبير</h1>
-                <p class="text-2xl text-slate-600 font-medium">مدرسة النهضة النموذجية • مشروع طمأنينة</p>
+                <p class="text-2xl text-slate-600 font-medium">مدرسة الملك عبدالله الثاني للتميز • مشروع طمأنينة</p>
             </div>
 
             <div class="py-8 flex justify-center">
@@ -654,7 +654,7 @@
     <!-- JAVASCRIPT LOGIC -->
     <script>
         // Password configuration for Dashboard Access
-        const ADMIN_PASSWORD = "12345"; // يمكنك تغيير كلمة السر هنا
+        const ADMIN_PASSWORD = "tamioz.t.jo"; // كلمة السر الجديدة المحدثة
 
         // State Management
         let currentState = {
@@ -668,7 +668,7 @@
                 { mood: 'joy', reason: 'friends', timestamp: '10:45 AM' }
             ],
             tickets: [
-                { id: '#TK-1092', time: 'اليوم 09:15 ص', msg: 'أواجه صعوبة كبيرة في التركيز بسبب الخوف من امتحان الفيزياء.', contact: 'فصل 2/أ', status: 'جديدة' },
+                { id: '#TK-1092', time: 'اليوم 09:15 ص', msg: 'أواجه صعوبة كبيرة في التركيز بسبب الخوف من امتحان الفيزياء.', contact: 'الصف الثامن', status: 'جديدة' },
                 { id: '#TK-1088', time: 'أمس 01:40 م', msg: 'أحتاج للتحدث مع المرشد حول مشكلة تنمر من أحد الطلاب.', contact: '0501234567', status: 'قيد المعالجة' },
                 { id: '#TK-1051', time: '22 سبتمبر', msg: 'أشعر بضغط شديد ورغبة في عدم الحضور للمدرسة.', contact: 'مجهول', status: 'مكتملة' }
             ]
