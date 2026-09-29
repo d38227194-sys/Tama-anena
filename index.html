@@ -127,9 +127,9 @@
                     <i class="fa-solid fa-mobile-screen"></i>
                     <span>تعبير الطالب</span>
                 </button>
-                <button id="nav-dashboard" onclick="navigate('dashboard')" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/50">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>لوحة التحكم والإرشاد</span>
+                <button id="nav-dashboard" onclick="checkAdminAccess()" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/50">
+                    <i class="fa-solid fa-lock text-amber-400"></i>
+                    <span>دخول المسؤول / المرشد</span>
                 </button>
             </div>
         </div>
@@ -353,6 +353,7 @@
                     <div class="flex items-center gap-2">
                         <h2 class="text-2xl font-bold text-white">لوحة الإرشاد والتحليل اللحظي</h2>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">مباشر</span>
+                        <span id="active-role-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">المرشد الطلابي</span>
                     </div>
                     <p class="text-xs text-slate-400 mt-1">مدرسة النهضة النموذجية • الدورة الإحصائية: <span class="text-slate-200 font-medium">الفصل الدراسي الأول 2026</span></p>
                 </div>
@@ -364,6 +365,11 @@
                         <option>الشهر الماضي</option>
                         <option>الفصل الدراسي الأول</option>
                     </select>
+
+                    <button onclick="logoutAdmin()" class="px-3.5 py-2 bg-rose-900/30 hover:bg-rose-900/50 border border-rose-700/50 rounded-xl text-xs font-medium text-rose-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>تسجيل الخروج</span>
+                    </button>
 
                     <button onclick="exportReport()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-medium text-slate-200 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-file-pdf text-rose-400"></i>
@@ -550,6 +556,44 @@
 
     </main>
 
+    <!-- ADMIN LOGIN MODAL -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-8 rounded-3xl max-w-sm w-full space-y-6 text-right border border-slate-700">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto text-xl border border-emerald-500/20">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white">دخول المرشد والمسؤول</h3>
+                <p class="text-xs text-slate-400">أدخل رمز الدخول المخصص للإدارة الإرشادية</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">اسم المستخدم / الدور</label>
+                    <select id="role-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <option value="counselor">المرشد الطلابي (صلاحية كاملة)</option>
+                        <option value="principal">مدير المدرسة (مشاهدة التقارير)</option>
+                        <option value="analyst">محلل البيانات</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">كلمة المرور / الرمز السري</label>
+                    <input id="admin-pass" type="password" placeholder="أدخل كلمة المرور (الافتراضية: 12345)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <p id="login-error" class="text-xs text-rose-400 hidden"><i class="fa-solid fa-triangle-exclamation"></i> كلمة المرور غير صحيحة!</p>
+
+                <button onclick="authenticateAdmin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl text-xs transition shadow-lg shadow-emerald-900/30">
+                    تسجيل الدخول للوحة التحكم
+                </button>
+                <button onclick="closeLoginModal()" class="w-full py-2 text-xs text-slate-400 hover:text-white">
+                    إلغاء والعودة
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- BREATHING EXERCISE MODAL -->
     <div id="breathing-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel p-8 rounded-3xl max-w-md w-full text-center space-y-8 relative border border-slate-700">
@@ -609,6 +653,9 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // Password configuration for Dashboard Access
+        const ADMIN_PASSWORD = "12345"; // يمكنك تغيير كلمة السر هنا
+
         // State Management
         let currentState = {
             selectedMood: null,
@@ -646,11 +693,55 @@
             
             // Check Hash route
             if(window.location.hash === '#/dashboard') {
-                navigate('dashboard');
+                checkAdminAccess();
             } else {
                 navigate('join');
             }
         });
+
+        // Authentication & Role Check
+        function checkAdminAccess() {
+            const isAuthenticated = sessionStorage.getItem('isAdminLoggedIn');
+            if (isAuthenticated === 'true') {
+                navigate('dashboard');
+            } else {
+                document.getElementById('admin-login-modal').classList.remove('hidden');
+            }
+        }
+
+        function authenticateAdmin() {
+            const passInput = document.getElementById('admin-pass').value;
+            const role = document.getElementById('role-select').value;
+
+            if (passInput === ADMIN_PASSWORD) {
+                sessionStorage.setItem('isAdminLoggedIn', 'true');
+                sessionStorage.setItem('adminRole', role);
+                
+                document.getElementById('admin-login-modal').classList.add('hidden');
+                document.getElementById('login-error').classList.add('hidden');
+                document.getElementById('admin-pass').value = '';
+                
+                // Update badge text based on role
+                const roleBadge = document.getElementById('active-role-badge');
+                if(role === 'principal') roleBadge.innerText = 'مدير المدرسة';
+                else if(role === 'analyst') roleBadge.innerText = 'محلل البيانات';
+                else roleBadge.innerText = 'المرشد الطلابي';
+
+                navigate('dashboard');
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('isAdminLoggedIn');
+            sessionStorage.removeItem('adminRole');
+            navigate('join');
+        }
 
         // Router
         function navigate(view) {
