@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة طمأنينة - قياس النبض النفسي والعاطفي المدرسي</title>
+    <!-- Google Fonts: IBM Plex Sans Arabic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            teal: '#0d9488',
+                            darkTeal: '#115e59'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['IBM Plex Sans Arabic', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #059669;
+            border-radius: 4px;
+        }
+
+        /* Breathing Exercise Animation */
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+            }
+            50% {
+                transform: scale(1.6);
+                box-shadow: 0 0 60px rgba(16, 185, 129, 0.6);
+            }
+        }
+        .animate-breathe {
+            animation: breathe 8s ease-in-out infinite;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Mood Card Animations */
+        .mood-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .mood-card:hover {
+            transform: translateY(-4px);
+        }
+        .mood-card.selected {
+            transform: scale(1.03);
+            border-color: #10b981 !important;
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="no-print border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('join')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-teal flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-600/30">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-wide bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">طمأنينة</h1>
+                    <p class="text-[10px] text-slate-400 -mt-1">منصة النبض النفسي المدرسي</p>
+                </div>
+            </div>
+
+            <!-- Header Mode Switcher -->
+            <div class="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700">
+                <button id="nav-join" onclick="navigate('join')" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 bg-brand-600 text-white shadow">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                    <span>تعبير الطالب</span>
+                </button>
+                <button id="nav-dashboard" onclick="navigate('dashboard')" class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/50">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>لوحة التحكم والإرشاد</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow flex flex-col">
+        
+        <!-- ================================================================= -->
+        <!-- STUDENT VIEW (#/join) -->
+        <!-- ================================================================= -->
+        <section id="view-join" class="flex-grow flex items-center justify-center p-4 py-8">
+            <div class="w-full max-w-xl mx-auto space-y-6">
+                
+                <!-- Status Bar Top -->
+                <div class="flex justify-between items-center text-xs text-slate-400 px-2">
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        مدرسة النهضة النموذجية
+                    </span>
+                    <span class="bg-slate-800/80 text-emerald-400 px-2.5 py-1 rounded-full border border-slate-700 flex items-center gap-1">
+                        <i class="fa-solid fa-user-shield text-[10px]"></i> مجهول الهوية 100%
+                    </span>
+                </div>
+
+                <!-- STEP 1: MOOD SELECTION -->
+                <div id="step-1" class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6">
+                    <div class="text-center space-y-2">
+                        <h2 class="text-2xl font-bold text-white">كيف تشعر الآن؟</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">عبر عن شعورك بصراحة، لا أحد يعرف هويتك. يستغرق الأمر 15 ثانية فقط.</p>
+                    </div>
+
+                    <!-- 8 Abstract Mood Options Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="mood-grid">
+                        <!-- Joy -->
+                        <button onclick="selectMood('joy')" data-mood="joy" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-sun"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">فرح</div>
+                                <div class="text-[10px] text-slate-400">سعيد ومشرق</div>
+                            </div>
+                        </button>
+
+                        <!-- Calm -->
+                        <button onclick="selectMood('calm')" data-mood="calm" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-water"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">هدوء</div>
+                                <div class="text-[10px] text-slate-400">مرتاح ومتوازن</div>
+                            </div>
+                        </button>
+
+                        <!-- Sad -->
+                        <button onclick="selectMood('sad')" data-mood="sad" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-cloud-rain"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">حزن</div>
+                                <div class="text-[10px] text-slate-400">مكتئب أو حزين</div>
+                            </div>
+                        </button>
+
+                        <!-- Anxious -->
+                        <button onclick="selectMood('anxious')" data-mood="anxious" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">قلق</div>
+                                <div class="text-[10px] text-slate-400">متوتر ومشتت</div>
+                            </div>
+                        </button>
+
+                        <!-- Exhausted -->
+                        <button onclick="selectMood('exhausted')" data-mood="exhausted" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-300 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-battery-quarter"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">إرهاق</div>
+                                <div class="text-[10px] text-slate-400">منهك ومجهد</div>
+                            </div>
+                        </button>
+
+                        <!-- Bored -->
+                        <button onclick="selectMood('bored')" data-mood="bored" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">ملل</div>
+                                <div class="text-[10px] text-slate-400">فقدان الشغف</div>
+                            </div>
+                        </button>
+
+                        <!-- Angry -->
+                        <button onclick="selectMood('angry')" data-mood="angry" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-fire"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">غضب</div>
+                                <div class="text-[10px] text-slate-400">منزعج ومشحون</div>
+                            </div>
+                        </button>
+
+                        <!-- Fear -->
+                        <button onclick="selectMood('fear')" data-mood="fear" class="mood-card border border-slate-700/80 bg-slate-800/40 hover:bg-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                            <div class="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm text-slate-200">خوف</div>
+                                <div class="text-[10px] text-slate-400">غير آمن</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- STEP 2: REASON TAGGER (Optional) -->
+                    <div id="reason-section" class="hidden space-y-4 pt-4 border-t border-slate-800">
+                        <label class="block text-xs font-medium text-slate-300">ما هو المسبب الأساسي لهذا الشعور؟ (اختياري)</label>
+                        <div class="flex flex-wrap gap-2" id="reason-tags">
+                            <button onclick="toggleReason(this, 'studies')" class="reason-btn px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs hover:border-brand-500 transition-all">📚 الدراسة والاختبارات</button>
+                            <button onclick="toggleReason(this, 'friends')" class="reason-btn px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs hover:border-brand-500 transition-all">👥 الأصدقاء والعلاقات</button>
+                            <button onclick="toggleReason(this, 'home')" class="reason-btn px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs hover:border-brand-500 transition-all">🏠 المنزل والأسرة</button>
+                            <button onclick="toggleReason(this, 'pressure')" class="reason-btn px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs hover:border-brand-500 transition-all">⏳ الضغوط والمسؤوليات</button>
+                            <button onclick="toggleReason(this, 'bullying')" class="reason-btn px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs hover:border-brand-500 transition-all">🚫 مضايقات أو تنمر</button>
+                            <button onclick="toggleReason(this, 'other')" class="reason-btn px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs hover:border-brand-500 transition-all">🌱 أسباب أخرى</button>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button id="submit-mood-btn" disabled onclick="submitMood()" class="w-full py-3.5 bg-slate-700 text-slate-400 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 cursor-not-allowed">
+                        <span>إرسال الشعور</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+
+                <!-- STEP 3: DECOMPRESSION & SUPPORT ACTION -->
+                <div id="step-3" class="hidden glass-panel p-6 sm:p-8 rounded-3xl space-y-6 text-center">
+                    
+                    <div class="inline-flex p-3 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20 text-3xl mb-2">
+                        <i id="feedback-icon" class="fa-solid fa-heart"></i>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="text-2xl font-bold text-white">شكراً لمشاركتك الشجاعة</h3>
+                        <p id="feedback-quote" class="text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
+                            "مشاعرك اليوم محط اهتمام ورعاية. تذكر أن كل يوم هو بداية جديدة وفرصة لاستعادة توازنك."
+                        </p>
+                    </div>
+
+                    <!-- Interactive Breathing Modal Button -->
+                    <div class="p-4 rounded-2xl bg-slate-800/60 border border-slate-700 space-y-3">
+                        <div class="text-xs text-slate-400">هل تشعر بالتوتر أو الانزعاج الآن؟</div>
+                        <button onclick="openBreathingModal()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium rounded-xl transition shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wind"></i>
+                            <span>تمرين التنفس المهدئ (دقيقة واحدة)</span>
+                        </button>
+                    </div>
+
+                    <!-- Help Ticket Button Option -->
+                    <div class="pt-2">
+                        <button onclick="toggleTicketForm()" class="text-xs text-rose-400 hover:text-rose-300 underline underline-offset-4 flex items-center justify-center gap-1.5 mx-auto">
+                            <i class="fa-solid fa-hand-holding-hand"></i>
+                            <span>أحتاج للتحدث مع المرشد الطلابي بسرية تامة</span>
+                        </button>
+                    </div>
+
+                    <!-- CONFIDENTIAL TICKET FORM -->
+                    <div id="ticket-form-container" class="hidden text-right space-y-4 pt-4 border-t border-slate-800">
+                        <div class="bg-rose-950/20 border border-rose-800/40 p-3 rounded-xl text-xs text-rose-300 flex items-start gap-2">
+                            <i class="fa-solid fa-lock text-sm mt-0.5"></i>
+                            <span>هذه الرسالة تصل فقط للمرشد الطلابي المعتمد بالمدرسة مباشرة، ولا يمكن لأي طالب أو معلم آخر الاطلاع عليها.</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">اكتب ما بظرفك أو مشكلتك باختصار:</label>
+                            <textarea id="ticket-msg" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:border-emerald-500 focus:outline-none" placeholder="مثال: يواجهني تنمر في الفسحة، أو أحتاج مساعدة في القلق من امتحان الغد..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">وسيلة للتواصل معك (اختياري - يمكنك تركها فارغة):</label>
+                            <input id="ticket-contact" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none" placeholder="رقم الهاتف أو رقم الفصل (مثال: فصل 2/3)">
+                        </div>
+
+                        <button onclick="submitSupportTicket()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs rounded-xl transition">
+                            إرسال طلب الدعم السري
+                        </button>
+                    </div>
+
+                    <!-- Ticket Confirmation -->
+                    <div id="ticket-success" class="hidden p-4 rounded-xl bg-emerald-900/30 border border-emerald-500/40 text-emerald-300 text-xs space-y-2">
+                        <i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i>
+                        <div class="font-bold">تم إرسال طلبك بسرية تامة!</div>
+                        <p class="text-[11px] text-slate-300">رمز المتابعة الخاص بك: <span id="ticket-code-display" class="font-mono font-bold text-amber-400">#TK-8921</span></p>
+                    </div>
+
+                    <button onclick="resetStudentForm()" class="text-xs text-slate-500 hover:text-slate-400 block mx-auto pt-4">
+                        العودة للبداية
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ================================================================= -->
+        <!-- DASHBOARD VIEW (#/dashboard) -->
+        <!-- ================================================================= -->
+        <section id="view-dashboard" class="hidden flex-grow p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+            
+            <!-- Dashboard Header Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-2xl font-bold text-white">لوحة الإرشاد والتحليل اللحظي</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">مباشر</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">مدرسة النهضة النموذجية • الدورة الإحصائية: <span class="text-slate-200 font-medium">الفصل الدراسي الأول 2026</span></p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Cycle Selector -->
+                    <select class="bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none">
+                        <option>الأسبوع الحالي (أسبوع الاختيارات)</option>
+                        <option>الشهر الماضي</option>
+                        <option>الفصل الدراسي الأول</option>
+                    </select>
+
+                    <button onclick="exportReport()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-medium text-slate-200 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf text-rose-400"></i>
+                        <span>تصدير تقرير PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI STATS CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- School Pulse Index -->
+                <div class="glass-panel p-5 rounded-2xl space-y-3 relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-medium text-slate-400">مؤشر المزاج العام للمدرسة</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="stat-positive-rate" class="text-3xl font-bold text-emerald-400">78%</span>
+                        <span class="text-xs text-emerald-500 flex items-center gap-0.5"><i class="fa-solid fa-arrow-up"></i> 4%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="stat-positive-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style="width: 78%"></div>
+                    </div>
+                    <span class="text-[10px] text-slate-400 block">حالة إيجابية ومستقرة بوجه عام</span>
+                </div>
+
+                <!-- Total Daily Check-ins -->
+                <div class="glass-panel p-5 rounded-2xl space-y-3">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-medium text-slate-400">إجمالي المشاركات اليومية</span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="stat-total-count" class="text-3xl font-bold text-white">142</span>
+                        <span class="text-xs text-slate-400">طالب</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">تغطية تبلغ 84% من إجمالي الطلاب</p>
+                </div>
+
+                <!-- Open Support Tickets -->
+                <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-l-rose-500">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-medium text-slate-400">طلبات الدعم السري النشطة</span>
+                        <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-life-ring"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="stat-tickets-count" class="text-3xl font-bold text-rose-400">3</span>
+                        <span class="text-xs text-rose-400 font-medium">حالات تحتاج تواصل</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">تتطلب استجابة خلال 24 ساعة</p>
+                </div>
+
+                <!-- Top Stress Factor -->
+                <div class="glass-panel p-5 rounded-2xl space-y-3">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-medium text-slate-400">المسبب الأبرز للضغط</span>
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="stat-top-reason" class="text-xl font-bold text-amber-300">الاختبارات والواجبات</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">يمثل 62% من الحالات ذات الشعور السلبي</p>
+                </div>
+
+            </div>
+
+            <!-- CHARTS SECTION -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Chart 1: Mood Distribution (Donut) -->
+                <div class="glass-panel p-6 rounded-3xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-sm text-white">توزيع المشاعر العاطفية</h3>
+                        <i class="fa-solid fa-chart-pie text-slate-500 text-xs"></i>
+                    </div>
+                    <div class="relative h-60">
+                        <canvas id="moodChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Weekly Pulse Trend (Line) -->
+                <div class="glass-panel p-6 rounded-3xl space-y-4 lg:col-span-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-sm text-white">اتجاه النبض النفسي خلال الأسبوع</h3>
+                        <div class="flex items-center gap-4 text-xs">
+                            <span class="flex items-center gap-1 text-emerald-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> إيجابي</span>
+                            <span class="flex items-center gap-1 text-rose-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> يحتاج دعم</span>
+                        </div>
+                    </div>
+                    <div class="relative h-60">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- LOWER SECTION: SUPPORT TICKETS & TOOLS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Support Tickets Management (2 cols) -->
+                <div class="glass-panel p-6 rounded-3xl space-y-4 lg:col-span-2">
+                    <div class="flex justify-between items-center">
+                        <div class="space-y-0.5">
+                            <h3 class="font-bold text-base text-white">إدارة طلبات الدعم السري</h3>
+                            <p class="text-xs text-slate-400">استغاثات الطلاب السرية التي تتطلب تدخلاً إرشادياً</p>
+                        </div>
+                        <span class="px-2.5 py-1 bg-slate-800 text-slate-300 text-xs rounded-lg border border-slate-700" id="tickets-badge-count">3 طلبات</span>
+                    </div>
+
+                    <!-- Tickets Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs text-slate-300">
+                            <thead class="bg-slate-800/80 text-slate-400 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-3 rounded-r-xl">رمز الطلب</th>
+                                    <th class="p-3">التاريخ والوقت</th>
+                                    <th class="p-3">محتوى الرسالة</th>
+                                    <th class="p-3">وسيلة التواصل</th>
+                                    <th class="p-3">الحالة</th>
+                                    <th class="p-3 rounded-l-xl">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tickets-table-body" class="divide-y divide-slate-800">
+                                <!-- Dynamic rows inserted by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TOOLS & POSTER GENERATOR (1 col) -->
+                <div class="space-y-6">
+                    
+                    <!-- QR Poster Generator Card -->
+                    <div class="glass-panel p-6 rounded-3xl space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-qrcode"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-white">مولد ملصق الباركود للممر</h3>
+                                <p class="text-[11px] text-slate-400">طباعة وتعليق الرمز في الصفوف</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 space-y-3 text-center">
+                            <div id="poster-qr-preview" class="flex justify-center p-2 bg-white rounded-xl inline-block mx-auto"></div>
+                            <div class="text-[11px] text-slate-400">الرابط المباشر: <span class="text-emerald-400 font-mono">tamaneena.edu/join</span></div>
+                        </div>
+
+                        <button onclick="printPoster()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-medium text-xs transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-print"></i>
+                            <span>تصدير بوستر جاهز للطباعة (PDF)</span>
+                        </button>
+                    </div>
+
+                    <!-- Privacy & Retention policy -->
+                    <div class="glass-panel p-5 rounded-3xl space-y-3">
+                        <div class="flex items-center gap-2 text-xs font-bold text-slate-200">
+                            <i class="fa-solid fa-shield-cat text-brand-400"></i>
+                            <span>ميثاق أمان البيانات والاحتفاظ</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            يتم التخلص تلقائياً من نصوص الرسائل الشخصية للطلاب بعد 30 يوماً مع الاحتفاظ فقط بالمؤشرات الإحصائية العامة لحماية الخصوصية المطلقة.
+                        </p>
+                        <button onclick="triggerDataPurge()" class="text-[10px] text-rose-400 hover:text-rose-300 underline">
+                            تنفيذ مسح البيانات القديمة الآن
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- BREATHING EXERCISE MODAL -->
+    <div id="breathing-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-8 rounded-3xl max-w-md w-full text-center space-y-8 relative border border-slate-700">
+            <button onclick="closeBreathingModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="space-y-2">
+                <h3 class="text-xl font-bold text-white">تمرين التنفس المهدئ</h3>
+                <p id="breath-instruction" class="text-sm text-emerald-400 font-medium h-6">شهيق عميق...</p>
+            </div>
+
+            <!-- Animated Visualizer Circle -->
+            <div class="py-10 flex items-center justify-center">
+                <div class="w-32 h-32 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 animate-breathe flex items-center justify-center shadow-2xl shadow-emerald-500/40">
+                    <i class="fa-solid fa-spa text-slate-950 text-3xl"></i>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-400 leading-relaxed">
+                ركز عينيك على الدائرة، خذ شهيقاً عندما تتسع الدائرة، وازفر ببطء عندما تتقلص.
+            </p>
+
+            <button onclick="closeBreathingModal()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-medium transition">
+                أنا أشعر بتحسن الآن
+            </button>
+        </div>
+    </div>
+
+    <!-- PRINTABLE POSTER TEMPLATE (Hidden from screen, visible on print) -->
+    <div id="printable-poster" class="hidden print-only p-12 text-center space-y-8 bg-white text-slate-900 min-h-screen">
+        <div class="border-8 border-emerald-600 p-8 rounded-3xl space-y-8">
+            <div class="space-y-2">
+                <h1 class="text-5xl font-black text-emerald-800">مساحتك الآمنة للتعبير</h1>
+                <p class="text-2xl text-slate-600 font-medium">مدرسة النهضة النموذجية • مشروع طمأنينة</p>
+            </div>
+
+            <div class="py-8 flex justify-center">
+                <div id="print-qr-code" class="p-4 border-4 border-slate-900 rounded-2xl inline-block"></div>
+            </div>
+
+            <div class="space-y-4 max-w-lg mx-auto">
+                <h2 class="text-3xl font-bold text-slate-800">كيف تشعر اليوم؟</h2>
+                <p class="text-lg text-slate-600">امسح الكود بكاميرا جوالك وشاركنا شعورك في 15 ثانية دون الحاجة لتسجيل حسابك أو كتابة اسمك.</p>
+            </div>
+
+            <div class="pt-12 text-sm text-slate-400 border-t border-slate-200">
+                🔒 سرية تامة ومجهول الهوية 100% • دعم واستجابة فورية من المرشد الطلابي
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="no-print border-t border-slate-800/60 py-4 text-center text-xs text-slate-500">
+        <p>منصة «طمأنينة» لتعزيز الصحة النفسية والبيئة المدرسية الإيجابية © 2026</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        let currentState = {
+            selectedMood: null,
+            selectedReason: null,
+            submissions: [
+                { mood: 'joy', reason: 'studies', timestamp: '10:15 AM' },
+                { mood: 'calm', reason: 'friends', timestamp: '10:20 AM' },
+                { mood: 'anxious', reason: 'studies', timestamp: '10:22 AM' },
+                { mood: 'sad', reason: 'home', timestamp: '10:30 AM' },
+                { mood: 'joy', reason: 'friends', timestamp: '10:45 AM' }
+            ],
+            tickets: [
+                { id: '#TK-1092', time: 'اليوم 09:15 ص', msg: 'أواجه صعوبة كبيرة في التركيز بسبب الخوف من امتحان الفيزياء.', contact: 'فصل 2/أ', status: 'جديدة' },
+                { id: '#TK-1088', time: 'أمس 01:40 م', msg: 'أحتاج للتحدث مع المرشد حول مشكلة تنمر من أحد الطلاب.', contact: '0501234567', status: 'قيد المعالجة' },
+                { id: '#TK-1051', time: '22 سبتمبر', msg: 'أشعر بضغط شديد ورغبة في عدم الحضور للمدرسة.', contact: 'مجهول', status: 'مكتملة' }
+            ]
+        };
+
+        const moodQuotes = {
+            joy: "رائع جداً! طاقاتك الإيجابية تضيء مدرستك اليوم، واصل التألق!",
+            calm: "الهدوء والسكينة هي أصل السلام الداخلي، أتمنى لك يوماً طيباً ومثمراً.",
+            sad: "لا بأس بالحزن أحياناً، إنه شعور طبيعي ومؤقت. نحن هنا دائماً بجانبك.",
+            anxious: "القلق ضيف خفيف، خذ نفساً عميقاً، وتذكر أنك أقوى مما تعتقد.",
+            exhausted: "جسمك وعقلك يستحقان الراحة، خذ استراحة قصيرة واعتنِ بنفسك.",
+            bored: "الملل بداية الاكتشاف، جرب القيام بشيء جديد ولطيف اليوم.",
+            angry: "الغضب طاقة تتطلب التفهم، خذ نفساً هادئاً واستعد توازنك.",
+            fear: "أنت في بيئة آمنة، ولا تجعل الخوف يمنعك من طلب الدعم والتحدث معنا."
+        };
+
+        // DOM Loaded Init
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            renderTickets();
+            generateQRCodes();
+            
+            // Check Hash route
+            if(window.location.hash === '#/dashboard') {
+                navigate('dashboard');
+            } else {
+                navigate('join');
+            }
+        });
+
+        // Router
+        function navigate(view) {
+            const joinView = document.getElementById('view-join');
+            const dashView = document.getElementById('view-dashboard');
+            const btnJoin = document.getElementById('nav-join');
+            const btnDash = document.getElementById('nav-dashboard');
+
+            if(view === 'dashboard') {
+                joinView.classList.add('hidden');
+                dashView.classList.remove('hidden');
+                btnDash.className = "px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 bg-brand-600 text-white shadow";
+                btnJoin.className = "px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/50";
+                window.location.hash = '/dashboard';
+            } else {
+                dashView.classList.add('hidden');
+                joinView.classList.remove('hidden');
+                btnJoin.className = "px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 bg-brand-600 text-white shadow";
+                btnDash.className = "px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/50";
+                window.location.hash = '/join';
+            }
+        }
+
+        // Student Selection Logic
+        function selectMood(moodKey) {
+            currentState.selectedMood = moodKey;
+            
+            // Highlight Selected Card
+            document.querySelectorAll('.mood-card').forEach(card => {
+                if(card.dataset.mood === moodKey) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+
+            // Reveal Reasons & Enable Submit Button
+            document.getElementById('reason-section').classList.remove('hidden');
+            const submitBtn = document.getElementById('submit-mood-btn');
+            submitBtn.disabled = false;
+            submitBtn.className = "w-full py-3.5 bg-gradient-to-r from-brand-600 to-brand-teal hover:from-brand-500 hover:to-brand-teal text-white rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-900/40 cursor-pointer";
+        }
+
+        function toggleReason(btn, reasonKey) {
+            document.querySelectorAll('.reason-btn').forEach(b => {
+                b.classList.remove('border-brand-500', 'bg-brand-500/20', 'text-brand-300');
+            });
+            btn.classList.add('border-brand-500', 'bg-brand-500/20', 'text-brand-300');
+            currentState.selectedReason = reasonKey;
+        }
+
+        function submitMood() {
+            if(!currentState.selectedMood) return;
+
+            // Trigger Confetti for positive moods
+            if(currentState.selectedMood === 'joy' || currentState.selectedMood === 'calm') {
+                confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+            }
+
+            // Update UI to Step 3
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+
+            // Set Quote
+            document.getElementById('feedback-quote').innerText = `"${moodQuotes[currentState.selectedMood]}"`;
+
+            // Push to state
+            currentState.submissions.push({
+                mood: currentState.selectedMood,
+                reason: currentState.selectedReason || 'other',
+                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            });
+
+            // Update Dashboard Analytics live
+            updateDashboardData();
+        }
+
+        function toggleTicketForm() {
+            const form = document.getElementById('ticket-form-container');
+            form.classList.toggle('hidden');
+        }
+
+        function submitSupportTicket() {
+            const msg = document.getElementById('ticket-msg').value;
+            const contact = document.getElementById('ticket-contact').value;
+
+            if(!msg) {
+                alert('الرجاء كتابة تفاصيل الرسالة قبل الإرسال');
+                return;
+            }
+
+            const code = '#TK-' + Math.floor(1000 + Math.random() * 9000);
+            currentState.tickets.unshift({
+                id: code,
+                time: 'الآن',
+                msg: msg,
+                contact: contact || 'مجهول',
+                status: 'جديدة'
+            });
+
+            document.getElementById('ticket-form-container').classList.add('hidden');
+            document.getElementById('ticket-success').classList.remove('hidden');
+            document.getElementById('ticket-code-display').innerText = code;
+
+            renderTickets();
+            updateDashboardData();
+        }
+
+        function resetStudentForm() {
+            currentState.selectedMood = null;
+            currentState.selectedReason = null;
+            document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('step-1').classList.remove('hidden');
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('reason-section').classList.add('hidden');
+            document.getElementById('ticket-success').classList.add('hidden');
+            document.getElementById('ticket-msg').value = '';
+            document.getElementById('ticket-contact').value = '';
+            
+            const submitBtn = document.getElementById('submit-mood-btn');
+            submitBtn.disabled = true;
+            submitBtn.className = "w-full py-3.5 bg-slate-700 text-slate-400 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 cursor-not-allowed";
+        }
+
+        // Breathing Exercise Controls
+        let breathInterval;
+        function openBreathingModal() {
+            document.getElementById('breathing-modal').classList.remove('hidden');
+            const textElem = document.getElementById('breath-instruction');
+            let state = 0;
+            
+            breathInterval = setInterval(() => {
+                if(state === 0) {
+                    textElem.innerText = "شهيق عميق... (خذ نفساً)";
+                    state = 1;
+                } else {
+                    textElem.innerText = "زفير بطيء... (أخرج النفس)";
+                    state = 0;
+                }
+            }, 4000);
+        }
+
+        function closeBreathingModal() {
+            document.getElementById('breathing-modal').classList.add('hidden');
+            clearInterval(breathInterval);
+        }
+
+        // Dashboard Render Functions
+        let moodChart, trendChart;
+
+        function initCharts() {
+            // Mood Distribution Chart
+            const ctx1 = document.getElementById('moodChart').getContext('2d');
+            moodChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['فرح', 'هدوء', 'حزن', 'قلق', 'إرهاق', 'غضب'],
+                    datasets: [{
+                        data: [45, 35, 12, 18, 10, 5],
+                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#a855f7', '#64748b', '#f43f5e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'IBM Plex Sans Arabic', size: 10 } } }
+                    }
+                }
+            });
+
+            // Trend Chart
+            const ctx2 = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'],
+                    datasets: [
+                        {
+                            label: 'حالات إيجابية',
+                            data: [70, 75, 78, 82, 80],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'تحتاج دعم',
+                            data: [30, 25, 22, 18, 20],
+                            borderColor: '#f43f5e',
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderTickets() {
+            const tbody = document.getElementById('tickets-table-body');
+            tbody.innerHTML = '';
+
+            currentState.tickets.forEach((t, index) => {
+                let statusBadge = '';
+                if(t.status === 'جديدة') statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30">جديدة</span>';
+                else if(t.status === 'قيد المعالجة') statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">قيد المعالجة</span>';
+                else statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">مكتملة</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-amber-400">${t.id}</td>
+                    <td class="p-3 text-slate-400">${t.time}</td>
+                    <td class="p-3 max-w-xs truncate" title="${t.msg}">${t.msg}</td>
+                    <td class="p-3 text-slate-300">${t.contact}</td>
+                    <td class="p-3">${statusBadge}</td>
+                    <td class="p-3">
+                        <select onchange="updateTicketStatus(${index}, this.value)" class="bg-slate-800 border border-slate-700 text-[10px] rounded p-1 text-slate-200">
+                            <option value="جديدة" ${t.status==='جديدة'?'selected':''}>جديدة</option>
+                            <option value="قيد المعالجة" ${t.status==='قيد المعالجة'?'selected':''}>قيد المعالجة</option>
+                            <option value="مكتملة" ${t.status==='مكتملة'?'selected':''}>مكتملة</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('tickets-badge-count').innerText = `${currentState.tickets.length} طلبات`;
+            document.getElementById('stat-tickets-count').innerText = currentState.tickets.filter(t => t.status !== 'مكتملة').length;
+        }
+
+        function updateTicketStatus(index, newStatus) {
+            currentState.tickets[index].status = newStatus;
+            renderTickets();
+        }
+
+        function updateDashboardData() {
+            document.getElementById('stat-total-count').innerText = 142 + currentState.submissions.length;
+            renderTickets();
+        }
+
+        function generateQRCodes() {
+            // Dashboard Preview QR
+            document.getElementById('poster-qr-preview').innerHTML = '';
+            new QRCode(document.getElementById("poster-qr-preview"), {
+                text: window.location.origin + window.location.pathname + "#/join",
+                width: 100,
+                height: 100,
+                colorDark : "#064e3b",
+                colorLight : "#ffffff"
+            });
+
+            // Print Poster QR
+            document.getElementById('print-qr-code').innerHTML = '';
+            new QRCode(document.getElementById("print-qr-code"), {
+                text: window.location.origin + window.location.pathname + "#/join",
+                width: 220,
+                height: 220,
+                colorDark : "#064e3b",
+                colorLight : "#ffffff"
+            });
+        }
+
+        function printPoster() {
+            window.print();
+        }
+
+        function exportReport() {
+            alert('جاري إعداد تقرير PDF الإحصائي للمدرسة للتصدير...');
+        }
+
+        function triggerDataPurge() {
+            if(confirm('هل أنت تأكد من إجراء مسح أمان البيانات القديمة وتشفير السجلات؟')) {
+                alert('تم تنظيف ومسح بيانات نصوص الاستغاثة القديمة بنجاح وفق ميثاق الخصوصية.');
+            }
+        }
+    </script>
+</body>
+</html>
